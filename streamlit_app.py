@@ -1,4 +1,4 @@
-import streamlit as st
+aimport streamlit as st
 from docx import Document
 from pinecone import Pinecone, ServerlessSpec
 import openai
@@ -219,7 +219,9 @@ with st.sidebar:
             st.success("All transcripts upserted successfully!")
 
 # Main content area
-st.header("Ask Bent")
+st.write("How to optimize shop layout")
+st.write("How to clean Graco sprayer")
+st.write("How to avoid mistakes with LR32 system")
 user_query = st.text_input("What would you like to know about woodworking?")
 
 if st.button("Get Answer"):
