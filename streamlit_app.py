@@ -114,15 +114,15 @@ def query_pinecone(query, index):
     else:
         return []
 
-# Function to get answers from GPT-3.5-turbo
-def get_gpt_answer(context, user_query):
-    max_context_tokens = 3000  # Adjust as needed
+# Function to get answers from GPT-3.5-turbo for Agents 1-4
+def get_agent_answer(context, user_query, agent_id):
+    max_context_tokens = 3000
     truncated_context = truncate_text(context, max_context_tokens)
     
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": """You are an assistant expert representing Jason Bent on woodworking based on 
+            {"role": "system", "content": f"""You are Agent {agent_id}, an assistant expert representing Jason Bent on woodworking based on 
             information uploaded in the document. You are an AI assistant focused on explaining answers to questions based on 
             how Jason Bent would answer. At any time you provide a response, include citations for title of the video the 
             information is from and the timestamp of where the relevant information is presented from. Provide response as if 
@@ -140,6 +140,42 @@ def get_gpt_answer(context, user_query):
             Festool Bluetooth Switch - https://amzn.to/33RAt36
             Woodpeckers TS600 - https://amzn.to/3mIc34t"""},
             {"role": "user", "content": f"Answer the following question based on the context: {truncated_context}\n\nQuestion: {user_query}"}
+        ]
+    )
+    return response.choices[0].message.content.strip()
+
+# Function for Agent 5 to prioritize answers
+def prioritize_answers(answers):
+    prompt = f"""As Agent 5, your task is to prioritize and rank the following answers from Agents 1-4. 
+    Consider factors such as relevance, completeness, and clarity. Provide a brief explanation for your ranking.
+
+    Answers:
+    {answers}
+
+    Please rank these answers and explain your reasoning."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are Agent 5, tasked with prioritizing and ranking answers from other agents."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message.content.strip()
+
+# Function for Agent 6 to summarize prioritized answers
+def summarize_answers(prioritized_answers):
+    prompt = f"""As Agent 6, your task is to create a comprehensive summary of the prioritized answers. 
+    Combine the best elements from each answer to provide a complete and coherent response. 
+    Ensure to maintain Jason Bent's tone and include relevant citations and affiliate links.
+
+    Please provide a best answer based on the {prioritized_answers} with prioritize the summary creation that best represents Jason Bent's expertise."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are Agent 6, tasked with summarizing prioritized answers into a comprehensive response."},
+            {"role": "user", "content": prompt}
         ]
     )
     return response.choices[0].message.content.strip()
@@ -193,22 +229,35 @@ if st.button("Get Answer"):
                 retrieved_texts = [match['metadata']['text'] for match in matches]
                 retrieved_titles = [match['metadata']['title'] for match in matches]
                 context = " ".join([f"Title: {title}\n{text}" for title, text in zip(retrieved_titles, retrieved_texts)])
-                answer = get_gpt_answer(context, user_query)
+                
+                # Get answers from Agents 1-4
+                agent_answers = []
+                for i in range(1, 5):
+                    agent_answer = get_agent_answer(context, user_query, i)
+                    agent_answers.append(f"Agent {i}: {agent_answer}")
+                
+                # Agent 5 prioritizes answers
+                prioritized_answers = prioritize_answers("\n\n".join(agent_answers))
+                
+                # Agent 6 summarizes prioritized answers
+                final_answer = summarize_answers(prioritized_answers)
                 
                 st.subheader("Jason's Answer:")
-                st.write(answer)
+                st.write(final_answer)
                 
                 # Extract sources from the answer
                 mentioned_sources = set()
                 for title in retrieved_titles:
-                    if title in answer:
+                    if title in final_answer:
                         mentioned_sources.add(title)
                 
-                # Display only the sources mentioned in the answer
-                if mentioned_sources:
-                    st.subheader("Sources:")
-                    for title in mentioned_sources:
-                        st.text(f"• {title}")
+                
+                # Display individual agent answers and prioritization (optional)
+                with st.expander("See individual agent answers and prioritization"):
+                    for answer in agent_answers:
+                        st.write(answer)
+                    st.write("Agent 5 Prioritization:")
+                    st.write(prioritized_answers)
             else:
                 st.warning("I couldn't find a specific answer to your question. Please try rephrasing or ask something else.")
     else:
@@ -218,8 +267,8 @@ if st.button("Get Answer"):
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-if user_query and 'answer' in locals():
-    st.session_state.chat_history.append((user_query, answer))
+if user_query and 'final_answer' in locals():
+    st.session_state.chat_history.append((user_query, final_answer))
 
 if st.session_state.chat_history:
     st.header("Recent Questions and Answers")
