@@ -1,4 +1,4 @@
-aimport streamlit as st
+import streamlit as st
 from docx import Document
 from pinecone import Pinecone, ServerlessSpec
 import openai
