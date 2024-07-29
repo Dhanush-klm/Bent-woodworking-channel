@@ -9,8 +9,6 @@ import tiktoken
 from tiktoken import get_encoding
 import io
 import os
-
-# Replace these with your actual API keys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -19,13 +17,14 @@ load_dotenv()
 # Access your API key
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+
 # Function to extract text from DOCX
 def extract_text_from_docx(file):
     doc = Document(file)
     text = "\n".join([para.text for para in doc.paragraphs])
     return text
 
-# Function to extract metadata from transcript
+# Function to extract metadata from text
 def extract_metadata_from_text(text):
     video_id = f"video_{hash(text) % 1000000}"  # Simple hash-based ID
     title = text.split('\n')[0] if text else "Untitled Video"  # Use the first line as title
@@ -121,7 +120,7 @@ def get_gpt_answer(context, user_query):
     truncated_context = truncate_text(context, max_context_tokens)
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": """You are an assistant expert representing Jason Bent on woodworking based on 
             information uploaded in the document. You are an AI assistant focused on explaining answers to questions based on 
@@ -147,6 +146,9 @@ def get_gpt_answer(context, user_query):
 
 # Streamlit Interface
 st.set_page_config(page_title="Bent's Woodworking Assistant", layout="wide")
+
+# Add the logo to the main page
+st.image("bents logo.png", width=150)
 
 st.title("Bent's Woodworking Assistant")
 
