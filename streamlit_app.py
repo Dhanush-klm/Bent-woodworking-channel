@@ -120,7 +120,7 @@ def get_gpt_answer(context, user_query):
     truncated_context = truncate_text(context, max_context_tokens)
     
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": """You are an assistant expert representing Jason Bent on woodworking based on 
             information uploaded in the document. You are an AI assistant focused on explaining answers to questions based on 
