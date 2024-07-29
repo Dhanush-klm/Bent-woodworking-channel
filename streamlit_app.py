@@ -16,7 +16,7 @@ load_dotenv()
 
 # Access your API key
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"] 
-PINECONE_API_KEY = st.secrets["PINECONE_API_KEY']
+PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 
 # Function to extract text from DOCX
 def extract_text_from_docx(file):
