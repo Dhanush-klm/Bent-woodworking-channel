@@ -49,7 +49,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Initialize Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY)
-INDEX_NAME = "youtube-transcripts"
+INDEX_NAME = "bents-woodworking"
 
 # Check if the index already exists before creating it
 if INDEX_NAME not in pc.list_indexes().names():
