@@ -15,8 +15,8 @@ from database_operations import get_database_connection, init_db, load_initial_d
 # Load environment variables and initialize clients
 load_dotenv()
 # Access your API key
-OPENAI_API_KEY = st.secrets("OPENAI_API_KEY")
-PINECONE_API_KEY = st.secrets("PINECONE_API_KEY")
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 client = OpenAI(api_key=OPENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY)
 INDEX_NAME = "bents-woodworking"
